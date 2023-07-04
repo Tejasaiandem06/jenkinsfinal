@@ -54,7 +54,7 @@ pipeline {
                 stage('Deploy to Dev') {
                     steps {
                         echo 'Build'
-                        sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
+                        sh "aws lambda update-function-code --function-name $jenkinsfinal --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
                     }
                 }
 
@@ -64,7 +64,7 @@ pipeline {
                     }
                     steps {
                         echo 'Build'
-                        // sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
+                        // sh "aws lambda update-function-code --function-name $jenkinsfinal --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
                     }
                 }
             }
@@ -84,7 +84,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
+                sh "aws lambda update-function-code --function-name $jenkinsfinal --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
             }
         }
     }
