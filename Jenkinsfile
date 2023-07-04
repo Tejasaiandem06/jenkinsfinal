@@ -1,13 +1,13 @@
 pipeline {
-    agent { label 'master'}
+    agent {
+        label 'master'
+    }
 
     environment {
-        function_name = 'java-sample'
+        function_name = 'jenkinsfinal'
     }
 
     stages {
-
-        // CI Start
         stage('Build') {
             steps {
                 echo 'Build'
@@ -15,69 +15,58 @@ pipeline {
             }
         }
 
+        stage("SonarQube analysis") {
+            agent any
+            when {
+                anyOf {
+                    branch 'feature/*'
+                    branch 'main'
+                }
+            }
+            steps {
+                withSonarQubeEnv('Sonar') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
 
-        // stage("SonarQube analysis") {
-        //     agent any
-
-        //     when {
-        //         anyOf {
-        //             branch 'feature/*'
-        //             branch 'main'
-        //         }
-        //     }
-        //     steps {
-        //         withSonarQubeEnv('Sonar') {
-        //             sh 'mvn sonar:sonar'
-        //         }
-        //     }
-        // }
-
-        // stage("Quality Gate") {
-        //     steps {
-        //         script {
-        //             try {
-        //                 timeout(time: 10, unit: 'MINUTES') {
-        //                     waitForQualityGate abortPipeline: true
-        //                 }
-        //             }
-        //             catch (Exception ex) {
-
-        //             }
-        //         }
-        //     }
-        // }
+        stage("Quality Gate") {
+            steps {
+                script {
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: true
+                        }
+                    } catch (Exception ex) {
+                        // Handle exception
+                    }
+                }
+            }
+        }
 
         stage('Push') {
             steps {
                 echo 'Push'
-
-                sh "aws s3 cp target/sample-1.0.3.jar s3://bermtecbatch31"
+                sh "aws s3 cp target/sample-1.0.3.jar s3://jenkinsfinal"
             }
         }
 
-        // Ci Ended
-
-        // CD Started
-
         stage('Deployments') {
             parallel {
-
                 stage('Deploy to Dev') {
                     steps {
                         echo 'Build'
-
-                        sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
+                        sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
                     }
                 }
 
-                stage('Deploy to test ') {
+                stage('Deploy to test') {
                     when {
                         branch 'main'
                     }
                     steps {
                         echo 'Build'
-
-                        // sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
+                        // sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
                     }
                 }
             }
@@ -88,9 +77,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-               input (
-                    message: 'Are we good for Prod Deployment ?'
-               )
+                input(message: 'Are we good for Prod Deployment ?')
             }
         }
 
@@ -102,11 +89,6 @@ pipeline {
                 sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
             }
         }
-
-
-        
-
-        // CD Ended
     }
 
     post {
@@ -114,7 +96,6 @@ pipeline {
             echo "${env.BUILD_ID}"
             echo "${BRANCH_NAME}"
             echo "${BUILD_NUMBER}"
-
         }
 
         failure {
