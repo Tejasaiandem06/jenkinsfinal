@@ -1,5 +1,5 @@
 def checkoutSourceCode() {
-    checkout([$class: 'GitSCM', branches: [[name: "refs/remotes/origin/main"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'raghu-github', url: 'https://github.com/Raghupatik/java-test.git']]])
+    checkout([$class: 'GitSCM', branches: [[name: "refs/remotes/origin/main"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'tejasaiandem06-github', url: 'https://github.com/Tejasaiandem06/jenkinsfinal.git']]])
 }
 
 pipeline {
@@ -25,14 +25,14 @@ pipeline {
     }
 
     environment {
-        S3_BUCKET = 'raghu-jenkinsartifacts'
-        LAMBDA_FUNCTION = 'java-sample-lambq2'
+        S3_BUCKET = 'jenkinsfinal'
+        LAMBDA_FUNCTION = 'jenkinsfinal'
     }
 
     stages {
 
         stage('Build') {
-            agent { label 'jenkins-slave' }
+            agent any
 
 
             when {
@@ -49,7 +49,7 @@ pipeline {
         }
 
         stage('Push to S3') {
-            agent { label 'jenkins-slave' }
+            agent any
 
             when {
                 expression { params.Stage == 'All' || params.Stage == 'Artifactory' }
@@ -76,7 +76,7 @@ pipeline {
         }
 
         stage('Clean Workspace') {
-            agent { label 'jenkins-slave'}
+            agent any
             steps {
                 cleanWs()
             }
@@ -88,7 +88,7 @@ pipeline {
             }
             parallel {
                 stage ('Run postman test on Tomcat Test') {
-                    agent { label 'master'}
+                    agent any
                     steps {
                         //checkoutSourceCode()
                         script {
@@ -108,7 +108,7 @@ pipeline {
         }
 
         stage('Deploy to Lambda - Test') {
-            agent { label 'master' }
+            agent any
 
             when {
                 expression { params.Stage == 'All' || params.Stage == 'DeployTestServer' }
@@ -126,7 +126,7 @@ pipeline {
         }
 
        stage ('Rollback Test if deployment failed') {
-            agent { label 'master'}
+            agent any
             when {
                 expression { params.Stage == 'RollbackTestServer' && params.RollbackVersion != '' }
             }
@@ -173,7 +173,7 @@ pipeline {
         }
 
          stage('Deploy to Prod') {
-            agent { label 'jenkins-slave'}
+            agent any
             when {
                 expression { params.Stage == 'All' || params.Stage == 'DeployProduction' }
             }
@@ -191,16 +191,16 @@ pipeline {
         }
 
          stage ('Notify when all stages are done') {
-	        agent { label 'master' }
+	        agent any
             steps {
                 script {
                     if (currentBuild.result == 'FAILURE') {
-                        mail (to: 'ragupathi.kommidi@gmail.com', subject: "ERROR: The job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) failed, rollback to last stable version", body: "Please go to ${env.BUILD_URL} for the detail")
+                        mail (to: 'tejasaiandem06@gmail.com', subject: "ERROR: The job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) failed, rollback to last stable version", body: "Please go to ${env.BUILD_URL} for the detail")
 			            echo "ERROR: The job ${env.JOB_NAME} (${env.BUILD_NUMBER}) failed, rollback to last stable version"
 
                     } else {
 			            echo "The deployment process is done, new version is deployed successfully"
-                        mail (to: 'ragupathi.kommidi@gmail.com', subject: "SUCCESS: The job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is done, new version ${VERSION} is deployed successfully", body: "Please go to ${env.BUILD_URL} for the detail")
+                        mail (to: 'tejasaiandem06@gmail.com', subject: "SUCCESS: The job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is done, new version ${VERSION} is deployed successfully", body: "Please go to ${env.BUILD_URL} for the detail")
                     }
                 }
             }
