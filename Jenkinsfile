@@ -6,6 +6,8 @@ pipeline {
     }
 
     stages {
+
+        // CI Start
         stage('Build') {
             steps {
                 echo 'Build'
@@ -13,8 +15,10 @@ pipeline {
             }
         }
 
+
         stage("SonarQube analysis") {
             agent any
+
             when {
                 anyOf {
                     branch 'feature/*'
@@ -35,8 +39,9 @@ pipeline {
                         timeout(time: 10, unit: 'MINUTES') {
                             waitForQualityGate abortPipeline: true
                         }
-                    } catch (Exception ex) {
-                        // Handle exception
+                    }
+                    catch (Exception ex) {
+
                     }
                 }
             }
@@ -45,62 +50,42 @@ pipeline {
         stage('Push') {
             steps {
                 echo 'Push'
-                //sh "aws s3 cp target/sample-1.0.3.jar s3://jenkinsfinal"
+
+              //  sh "aws s3 cp target/sample-1.0.3.jar s3://bermtecbatch31"
             }
         }
 
+        // Ci Ended
+
+        // CD Started
+
         stage('Deployments') {
             parallel {
+
                 stage('Deploy to Dev') {
                     steps {
                         echo 'Build'
-                        //sh "aws lambda update-function-code --function-name $jenkinsfinal1 --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
+
+                        //sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
                     }
                 }
 
-                stage('Deploy to test') {
+                stage('Deploy to test ') {
                     when {
                         branch 'main'
                     }
                     steps {
                         echo 'Build'
-                        //sh "aws lambda update-function-code --function-name $jenkinsfinal2 --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
+
+                        // sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
                     }
                 }
             }
         }
 
-        stage('Deploy to Prod') {
-            when {
-                branch 'main'
-            }
-            steps {
-                input(message: 'Are we good for Prod Deployment ?')
-            }
-        }
 
-        stage('Release to Prod') {
-            when {
-                branch 'main'
-            }
-            steps {
-                //sh "aws lambda update-function-code --function-name $jenkinsfinal3 --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
-            }
-        }
-    }
+        
 
-    post {
-        always {
-            echo "${env.BUILD_ID}"
-            echo "${BRANCH_NAME}"
-            echo "${BUILD_NUMBER}"
-        }
-
-        failure {
-            echo 'failed'
-        }
-        aborted {
-            echo 'aborted'
-        }
+        // CD Ended
     }
 }
