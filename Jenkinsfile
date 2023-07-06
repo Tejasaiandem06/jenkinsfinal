@@ -64,7 +64,7 @@ pipeline {
                     }
                     steps {
                         echo 'Build'
-                        // sh "aws lambda update-function-code --function-name $jenkinsfinal --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
+                        sh "aws lambda update-function-code --function-name $jenkinsfinal --region us-east-1 --s3-bucket jenkinsfinal --s3-key sample-1.0.3.jar"
                     }
                 }
             }
